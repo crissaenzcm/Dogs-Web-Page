@@ -1,6 +1,8 @@
 const getAllDogsHandler = (req, res) => {
   const { name } = req.query;
+  //If I'm looking for a name
   if (name) res.send(`Quiero buscar todos los perros que se llamen ${name}`);
+  // I call all the dogs
   else res.send("Quiero enviar todos los perros");
 };
 // Obtener un listado de las razas de perro
@@ -22,7 +24,13 @@ const getDogByIdHandler = (req, res) => {
 // Incluir los temperamentos asociados
 
 const createDogHandler = (req, res) => {
-  res.send("NIY: This route is gonna create a dog based in the formulary");
+  const { name, height, weight, life_span } = req.body;
+  res.send(`Voy a crear un perro con:
+  name: ${name},
+  height: ${height} feets,
+  weight: ${weight} pounds,
+  life_span: ${life_span} years,
+  `);
 };
 // POST /dogs:
 // Recibe los datos recolectados desde el formulario controlado de la ruta de creación de raza de perro por body
