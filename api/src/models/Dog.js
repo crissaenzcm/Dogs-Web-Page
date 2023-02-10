@@ -32,8 +32,12 @@ module.exports = (sequelize) => {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-      life_span: {
-        type: DataTypes.STRING,
+      minLife_span: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      maxLife_span: {
+        type: DataTypes.INTEGER,
         allowNull: true,
       },
       createdInDb: {
