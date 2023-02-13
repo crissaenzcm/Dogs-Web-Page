@@ -7,7 +7,20 @@ const api = "https://api.thedogapi.com/v1/breeds?api_key='";
 const { API_KEY } = process.env;
 const { Dog, Temperaments } = require("../db");
 
-// DOGS FROM API (Only main info)
+// Clean Array for Front
+// const cleanArray = arra => {
+//   arra.map(elem => {
+//     return {
+//       id: elem.id,
+//       name: elem.name,
+//       temperament: elem.temperament,
+//       weight: elem.weight,
+//       img: elem.img,
+//     };
+//   });
+// };
+
+// DOGS FROM API
 
 const getDogsFromApi = async () => {
   const responseApi = await axios(`${api}${API_KEY}`);
@@ -17,7 +30,10 @@ const getDogsFromApi = async () => {
       name: dog.name,
       img: dog.image.url,
       temperament: dog.temperament,
-      weight: dog.weight.imperial,
+      weight: dog.weight.metric,
+      //height: dog.height.metric,
+      //life_span: dog.life_span,
+      createdInDB: false,
     };
   });
   return dogsApi;
@@ -44,6 +60,9 @@ const getDogsFromDb = async () => {
 const getAllD = async () => {
   const dogsFromApi = await getDogsFromApi();
   const dogsFromDb = await getDogsFromDb();
+  //const ApiDogs = cleanArray(getDogsFromApi);
+  //const ApiDataB = cleanArray(getDogsFromDb);
+
   const allDogs = [...dogsFromApi, ...dogsFromDb];
   return allDogs;
 };
@@ -97,14 +116,15 @@ const postDogInDt = async (
     life_span,
   }); //creating dog in DT with the data I'm gonna get
 
-  const temperDog = await Temperaments.findAll({
-    where: {
-      name: {
-        [Sequelize.Op.in]: temperaments,
-      },
-    },
-  });
-  dog.addTemperaments(temperDog);
+  // Este es el error de value.map
+  // const temperDog = await Temperaments.findAll({
+  //   where: {
+  //     name: {
+  //       [Sequelize.Op.in]: temperaments,
+  //     },
+  //   },
+  // });
+  // dog.addTemperaments(temperDog);
 };
 
 module.exports = {
