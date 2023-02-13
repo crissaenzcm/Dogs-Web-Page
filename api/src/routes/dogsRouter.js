@@ -10,6 +10,6 @@ dogsRouter.get("/", getAllDogsHandler);
 
 dogsRouter.get("/:id", getDogByIdHandler);
 
-dogsRouter.post("/", createDogHandler);
+dogsRouter.post("/create", createDogHandler);
 
 module.exports = dogsRouter;

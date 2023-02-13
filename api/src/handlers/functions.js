@@ -7,45 +7,37 @@ const api = "https://api.thedogapi.com/v1/breeds?api_key='";
 const { API_KEY } = process.env;
 const { Dog, Temperaments } = require("../db");
 
-// DOGS FROM API
+// DOGS FROM API (Only main info)
 
 const getDogsFromApi = async () => {
-  const response = await axios(`${api}${API_KEY}`);
-  const dogs = response.data.map(dog => ({
-    id: dog.id,
-    name: dog.name,
-    img: dog.image.url,
-    temperament: dog.temperament,
-    weight: dog.weight.imperial,
-    height: dog.height.imperial,
-    lifeSpan: dog.life_span,
-    createdInDb: false,
-  }));
-  return dogs;
+  const responseApi = await axios(`${api}${API_KEY}`);
+  const dogsApi = responseApi.data.map(dog => {
+    return {
+      id: dog.id,
+      name: dog.name,
+      img: dog.image.url,
+      temperament: dog.temperament,
+      weight: dog.weight.imperial,
+    };
+  });
+  return dogsApi;
 };
 
 // DOGS FROM DATABASE
 
 const getDogsFromDb = async () => {
-  const dataBaseDogs = await Dog.findAll({
-    include: Temperaments,
+  let dogsDB = await Dog.findAll({
+    include: {
+      model: Temperaments,
+      attributes: ["name"],
+    },
+
+    through: {
+      attributes: [],
+    },
   });
-  return dataBaseDogs.map(dog => {
-    let newT = dog.temperaments[0].name;
-    for (let i = 0; i < dog.temperaments.length; i++) {
-      newT = newT + ", " + dog.temperaments[i].name;
-    }
-    return {
-      id: dog.id,
-      name: dog.name,
-      img: dog.img,
-      temperament: newT,
-      weight: `${dog.minWeight} - ${dog.maxWeight}`,
-      height: `${dog.minHeight} - ${dog.maxHeight}`,
-      lifeSpan: `${dog.minLife_span} - ${dog.maxLife_span} years`,
-      createdInDb: dog.createdInDb,
-    };
-  });
+
+  return dogsDB;
 };
 
 // API DOGS + DB DOGS = ALL DOGS
@@ -93,8 +85,7 @@ const postDogInDt = async (
   maxHeight,
   minWeight,
   maxWeight,
-  minLife_span,
-  maxLife_span,
+  life_span,
   temperaments
 ) => {
   const dog = await Dog.create({
@@ -103,8 +94,7 @@ const postDogInDt = async (
     maxHeight,
     minWeight,
     maxWeight,
-    minLife_span,
-    maxLife_span,
+    life_span,
   }); //creating dog in DT with the data I'm gonna get
 
   const temperDog = await Temperaments.findAll({
@@ -122,4 +112,6 @@ module.exports = {
   getAllTemps,
   createTempsInDb,
   postDogInDt,
+  getDogsFromApi,
+  getDogsFromDb,
 };
