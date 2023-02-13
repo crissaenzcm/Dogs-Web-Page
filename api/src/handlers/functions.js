@@ -1,5 +1,6 @@
 const axios = require("axios");
 const db = require("../db");
+const { Sequelize } = require("sequelize");
 
 // API and APIKEY
 const api = "https://api.thedogapi.com/v1/breeds?api_key='";
@@ -55,29 +56,70 @@ const getAllD = async () => {
   return allDogs;
 };
 
-// ALL TEMPERAMENTS (Repeated and Undefined included)
+// CREATING TEMPERAMENTS IN DB
+const createTempsInDb = async dogList => {
+  try {
+    const listTemp = dogList.map(dog => dog.temperament); //retorna lista con strings con trmperamentos separadas por ','
+    const filterTemps = [];
 
-const getTemps = async () => {
-  const getDogs = await getDogsFromApi();
-  const getT = getDogs.map(dog => {
-    if (!dog.temperament) {
-      return dog.temperament;
+    for (const tempers of listTemp) {
+      if (tempers) {
+        var listAux = tempers.split(",");
+      }
+      for (const temp of listAux) {
+        filterTemps.push(temp);
+      }
     }
-    const spl = dog.temperament.split(", ");
-  });
-  const resultantTemps = getT.flat();
-  return resultantTemps;
+
+    filterTemps.sort();
+    for (const temp of filterTemps) {
+      await Temperaments.findOrCreate({ where: { name: temp.trim() } }); //hay temperamentos que se repiten por los espacion en blanco por eso el trim
+    }
+  } catch (error) {
+    res.status.send({ error: error.message });
+  }
 };
 
-// ALL TEMPS (Clean Version)
-const finalTemps = async () => {
-  let temps = await getTemps();
-  const cleanRepeatedTemps = new Set(temps); // Delete repeated Temps
-  let cleanUndefTemps = [...cleanRepeatedTemps].filter(Boolean); // Delete undef Temps
-  return cleanUndefTemps;
+//ALL TEMPERAMENTS (Clean V)
+const getAllTemps = async () => {
+  const temperaments = await Temperaments.findAll();
+  return temperaments;
+};
+
+// // CREATE DOG IN DB
+const postDogInDt = async (
+  name,
+  minHeight,
+  maxHeight,
+  minWeight,
+  maxWeight,
+  minLife_span,
+  maxLife_span,
+  temperaments
+) => {
+  const dog = await Dog.create({
+    name,
+    minHeight,
+    maxHeight,
+    minWeight,
+    maxWeight,
+    minLife_span,
+    maxLife_span,
+  }); //creating dog in DT with the data I'm gonna get
+
+  const temperDog = await Temperaments.findAll({
+    where: {
+      name: {
+        [Sequelize.Op.in]: temperaments,
+      },
+    },
+  });
+  dog.addTemperaments(temperDog);
 };
 
 module.exports = {
   getAllD,
-  finalTemps,
+  getAllTemps,
+  createTempsInDb,
+  postDogInDt,
 };
